@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@similarityz</title>
+    <title>@bruisedrockstar</title>
     
     <meta property="og:type" content="website">
     <meta property="og:title" content="bruisedrockstar">
@@ -38,10 +38,16 @@
             
             <div class="card-info">
                 <div class="name-badges">
-                    <h1 class="username"><span id="typewriter"></span><span class="cursor">|</span></h1>
+                    <h1 class="username">
+                        <a href="https://doxbin.com/user/zzzzvvv" target="_blank" class="username-link">
+                            <span id="typewriter"></span><span class="cursor">|</span>
+                        </a>
+                    </h1>
                     <div class="badges" id="badges"></div>
                 </div>
-                <p class="discord-status" id="discordStatus"></p>
+                <div class="bio-section">
+                    <p class="bio-text"><span id="bioTypewriter"></span><span class="bio-cursor">|</span></p>
+                </div>
             </div>
             
             <div class="activity-section" id="activitySection" style="display: none;">
@@ -62,7 +68,7 @@
     </div>
     
     <script>
-        const DISCORD_ID = '294549876207779850';
+        const DISCORD_ID = '1457473109828309064';
         const entryScreen = document.getElementById('entryScreen');
         const audio = document.getElementById('bgAudio');
         const mainContent = document.getElementById('mainContent');
@@ -133,6 +139,55 @@
             type();
         }
 
+        var bioLanguages = ['C#', 'JS', 'PY', 'HTML', 'REACT', 'PHP', 'CSS'];
+        var bioTypewriterEl = document.getElementById('bioTypewriter');
+        var currentLangIndex = 0;
+        var bioIdx = 0;
+        var bioIsDeleting = false;
+        var currentBioText = '';
+        var showingVpc = false;
+
+        function getNextBioText() {
+            if (!showingVpc && currentLangIndex >= bioLanguages.length) {
+                showingVpc = true;
+                return '/home/user/vpc';
+            }
+            if (showingVpc) {
+                showingVpc = false;
+                currentLangIndex = 0;
+            }
+            var lang1 = bioLanguages[currentLangIndex % bioLanguages.length];
+            var lang2 = bioLanguages[(currentLangIndex + 1) % bioLanguages.length];
+            currentLangIndex += 2;
+            return lang1 + '/' + lang2 + ' Dev';
+        }
+
+        function typeBio() {
+            if (!bioIsDeleting) {
+                if (bioIdx < currentBioText.length) {
+                    bioTypewriterEl.innerHTML += currentBioText.charAt(bioIdx);
+                    bioIdx++;
+                    setTimeout(typeBio, 100);
+                } else {
+                    bioIsDeleting = true;
+                    setTimeout(typeBio, 2000);
+                }
+            } else {
+                if (bioIdx > 0) {
+                    bioTypewriterEl.innerHTML = currentBioText.substring(0, bioIdx - 1);
+                    bioIdx--;
+                    setTimeout(typeBio, 50);
+                } else {
+                    bioIsDeleting = false;
+                    currentBioText = getNextBioText();
+                    setTimeout(typeBio, 500);
+                }
+            }
+        }
+
+        currentBioText = getNextBioText();
+        setTimeout(typeBio, 1000);
+
         const rain = document.getElementById('rain');
         function createDrop() {
             const drop = document.createElement('div');
@@ -156,7 +211,7 @@
             const ws = new WebSocket('wss://api.lanyard.rest/socket');
             
             ws.onopen = () => {
-                console.log('Connected to Lanyard');
+                console.log('lanyard');
             };
 
             ws.onmessage = (event) => {
@@ -181,18 +236,17 @@
             };
 
             ws.onclose = () => {
-                console.log('Disconnected from Lanyard, reconnecting...');
+                console.log('lanyard dis');
                 setTimeout(connectLanyard, 5000);
             };
 
             ws.onerror = (error) => {
-                console.error('Lanyard WebSocket error:', error);
+                console.error('websocket', error);
             };
         }
 
         function updatePresence(data) {
             const statusIndicator = document.getElementById('statusIndicator');
-            const discordStatus = document.getElementById('discordStatus');
             const activitySection = document.getElementById('activitySection');
             const avatar = document.getElementById('avatar');
             const badgesContainer = document.getElementById('badges');
@@ -240,24 +294,6 @@
             const status = data.discord_status || 'offline';
             statusIndicator.style.backgroundColor = statusColors[status];
             statusIndicator.className = 'status-indicator ' + status;
-
-            const customStatus = data.activities?.find(a => a.type === 4);
-            if (customStatus) {
-                let statusText = '';
-                if (customStatus.emoji) {
-                    if (customStatus.emoji.id) {
-                        statusText += `<img class="status-emoji" src="https://cdn.discordapp.com/emojis/${customStatus.emoji.id}.${customStatus.emoji.animated ? 'gif' : 'webp'}?size=20" alt="">`;
-                    } else {
-                        statusText += customStatus.emoji.name + ' ';
-                    }
-                }
-                if (customStatus.state) {
-                    statusText += customStatus.state;
-                }
-                discordStatus.innerHTML = statusText;
-            } else {
-                discordStatus.textContent = status.charAt(0).toUpperCase() + status.slice(1);
-            }
 
             const activity = data.activities?.find(a => a.type !== 4);
             if (activity) {
